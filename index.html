@@ -253,6 +253,31 @@
         </div>
     </div>
 
+    <!-- No Ball Result Modal -->
+    <div id="nb-modal" class="fixed inset-0 modal-backdrop hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-slate-800 p-6 rounded-2xl shadow-2xl max-w-sm w-full text-center border border-slate-600">
+            <h3 class="text-xl font-bold mb-4">No Ball: Additional Runs?</h3>
+            <div class="grid grid-cols-3 gap-3 mb-6">
+                <button onclick="app.handleNBOutcome(0)"
+                    class="py-4 bg-slate-700 rounded-xl font-bold text-xl btn-tap">0</button>
+                <button onclick="app.handleNBOutcome(1)"
+                    class="py-4 bg-slate-700 rounded-xl font-bold text-xl btn-tap">1</button>
+                <button onclick="app.handleNBOutcome(2)"
+                    class="py-4 bg-slate-700 rounded-xl font-bold text-xl btn-tap">2</button>
+                <button onclick="app.handleNBOutcome(3)"
+                    class="py-4 bg-slate-700 rounded-xl font-bold text-xl btn-tap">3</button>
+                <button onclick="app.handleNBOutcome(4)"
+                    class="py-4 bg-blue-600 rounded-xl font-bold text-xl btn-tap">4</button>
+                <button onclick="app.handleNBOutcome(6)"
+                    class="py-4 bg-green-600 rounded-xl font-bold text-xl btn-tap">6</button>
+            </div>
+            <button onclick="app.handleNBOutcome(0, true)"
+                class="w-full py-4 bg-red-600 rounded-xl font-bold text-lg text-white mb-4 btn-tap">RUN OUT</button>
+            <button onclick="document.getElementById('nb-modal').classList.add('hidden')"
+                class="w-full py-2 text-slate-400 font-semibold">Cancel</button>
+        </div>
+    </div>
+
     <script>
         class CricketApp {
             constructor() {
@@ -365,19 +390,42 @@
 
             extra(type) {
                 if (this.isMatchOver()) return;
+
+                if (type === 'NB') {
+                    document.getElementById('nb-modal').classList.remove('hidden');
+                    return;
+                }
+
+                if (type === 'WD') {
+                    this.pushHistory();
+                    this.vibrate();
+                    this.state.runs += 1;
+                    this.state.currentOverHistory.push(type);
+                    this.addEvent("Wide (+1)");
+                    this.checkInningsStatus();
+                    this.saveState();
+                    this.render();
+                }
+            }
+
+            handleNBOutcome(additionalRuns, isWicket = false) {
+                if (this.isMatchOver()) return;
                 this.pushHistory();
                 this.vibrate();
 
-                if (type === 'WD' || type === 'NB') {
-                    this.state.runs += 1;
-                    this.state.currentOverHistory.push(type);
-                    this.addEvent(type === 'WD' ? "Wide (+1)" : "No Ball (+1, Free Hit)");
+                this.state.runs += (1 + additionalRuns);
+                if (isWicket) {
+                    this.state.wickets += 1;
                 }
 
-                if (type === 'NB') {
-                    this.state.isFreeHit = true;
-                }
+                this.state.isFreeHit = true;
+                this.state.currentOverHistory.push('NB');
 
+                let msg = `No Ball (+1)${additionalRuns > 0 ? ` + ${additionalRuns} Runs` : ''}`;
+                if (isWicket) msg += " (RUN OUT)";
+                this.addEvent(msg);
+
+                document.getElementById('nb-modal').classList.add('hidden');
                 this.checkInningsStatus();
                 this.saveState();
                 this.render();
