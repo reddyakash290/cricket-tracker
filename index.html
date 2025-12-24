@@ -477,7 +477,7 @@
                 const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
                 this.state.eventLog.unshift({
                     msg,
-                    over: `${this.state.overs}.${this.state.ballsInOver}`,
+                    over: `${this.state.overs}.${this.state.ballsInOver + 1}`,
                     score: `${this.state.runs}/${this.state.wickets}`,
                     time
                 });
