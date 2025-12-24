@@ -475,9 +475,21 @@
 
             addEvent(msg) {
                 const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                let b = this.state.ballsInOver + 1;
+                let o = this.state.overs;
+
+                // Check if this is a legal ball (not a Wide or No Ball)
+                const isExtra = msg.includes("Wide") || msg.includes("No Ball");
+
+                // If it's the 6th legal ball, it completes the over, so show as X.0
+                if (!isExtra && b === 6) {
+                    o++;
+                    b = 0;
+                }
+
                 this.state.eventLog.unshift({
                     msg,
-                    over: `${this.state.overs}.${this.state.ballsInOver + 1}`,
+                    over: `${o}.${b}`,
                     score: `${this.state.runs}/${this.state.wickets}`,
                     time
                 });
